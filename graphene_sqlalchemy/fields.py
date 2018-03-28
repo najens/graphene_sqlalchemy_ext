@@ -6,18 +6,24 @@ from graphene.relay import ConnectionField
 from graphene.relay.connection import PageInfo
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 
-from .utils import get_query
+from .utils import get_query, sort_argument_for_model
 
 
-class SQLAlchemyConnectionField(ConnectionField):
+class _UnsortedSQLAlchemyConnectionField(ConnectionField):
 
     @property
     def model(self):
         return self.type._meta.node._meta.model
 
     @classmethod
-    def get_query(cls, model, info, **args):
-        return get_query(model, info.context)
+    def get_query(cls, model, info, sort=None, **args):
+        query = get_query(model, info.context)
+        if sort is not None:
+            if isinstance(sort, str):
+                query = query.order_by(sort.order)
+            else:
+                query = query.order_by(*(value.order for value in sort))
+        return query
 
     @property
     def type(self):
@@ -56,7 +62,17 @@ class SQLAlchemyConnectionField(ConnectionField):
         return partial(self.connection_resolver, parent_resolver, self.type, self.model)
 
 
-__connectionFactory = SQLAlchemyConnectionField
+class SQLAlchemyConnectionField(_UnsortedSQLAlchemyConnectionField):
+
+    def __init__(self, type, *args, **kwargs):
+        if 'sort' not in kwargs:
+            kwargs.setdefault('sort', sort_argument_for_model(type._meta.model))
+        elif kwargs['sort'] is None:
+            del kwargs['sort']
+        super(SQLAlchemyConnectionField, self).__init__(type, *args, **kwargs)
+
+
+__connectionFactory = _UnsortedSQLAlchemyConnectionField
 
 
 def createConnectionField(_type):
@@ -70,4 +86,4 @@ def registerConnectionFieldFactory(factoryMethod):
 
 def unregisterConnectionFieldFactory():
     global __connectionFactory
-    __connectionFactory = SQLAlchemyConnectionField
+    __connectionFactory = _UnsortedSQLAlchemyConnectionField
