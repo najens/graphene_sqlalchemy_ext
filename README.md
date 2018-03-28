@@ -1,6 +1,14 @@
 # graphene_sqlalchemy_ext
 graphene_sqlalchemy_ext is an extension to graphene_sqlalchemy with built-in sort functionality for your GraphQL queries.
 
+## Installation
+
+For instaling graphene, just run this command in your shell
+
+```bash
+pip install git+git://github.com/najens/graphene_sqlalchemy_ext.git
+```
+
 ## Examples
 
 Here is a simple SQLAlchemy model:
@@ -26,7 +34,7 @@ class UserModel(db.Model):
 To create a GraphQL schema for it you simply have to write the following:
 
 ```python
-from graphene_sqlalchemy_ext import SQLAlchemyObjectType, SQLAlchemyConnectionField
+from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 
 class User(SQLAlchemyObjectType):
     class Meta:
@@ -94,7 +102,8 @@ You may also subclass SQLAlchemyConnectionField to add filters to your queries
 by overriding the get_query method
 
 ```python
-from graphene_sqlalchemy_ext import SQLAlchemyObjectType, SQLAlchemyConnectionField
+from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
+from graphene_sqlalchemy.utils import get_query
 
 class MySQLAlchemyConnectionField(SQLAlchemyConnectionField):
 
