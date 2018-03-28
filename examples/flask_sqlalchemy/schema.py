@@ -11,7 +11,8 @@ class Department(SQLAlchemyObjectType):
     class Meta:
         model = DepartmentModel
         interfaces = (relay.Node, )
-
+        # Disable the total count on this connection
+        total_count = False
 
 class Employee(SQLAlchemyObjectType):
 

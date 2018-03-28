@@ -1,5 +1,5 @@
 # graphene_sqlalchemy_ext
-graphene_sqlalchemy_ext is an extension to graphene_sqlalchemy with built-in sort functionality for your GraphQL queries.
+graphene_sqlalchemy_ext is an extension to graphene_sqlalchemy with built-in sort and count functionality for your GraphQL queries. You may also filter results over multiple fields by subclassing the SQLAlchemyConnectionField.
 
 ## Installation
 
@@ -40,11 +40,15 @@ class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
         interfaces = (relay.Node, )
+        # To disable the total count on this connection add following
+        total_count = False
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
     user = relay.Node.Field(User)
     users = SQLAlchemyConnectionField(User)
+    # To disable sort feature add following
+    users = SQLAlchemyConnectionField(User, sort=None)
 
 schema = graphene.Schema(query=Query)
 ```
@@ -55,8 +59,9 @@ Then you can simply query the schema to get all users:
 query = '''
     query {
       users {
-        node {
-          edges {
+        totalCount,
+        edges {
+          node {
             name,
             lastName
           }
@@ -85,8 +90,8 @@ And sort the users:
 query = '''
     query {
       users(sort: name_desc) {
-        node {
-          edges {
+        edges {
+          node {
             name,
             lastName
           }
@@ -141,8 +146,8 @@ Then you can simply query the schema to filter users:
 query = '''
     query {
       users(name: "Michael", lastName: "Jackson") {
-        node {
-          edges {
+        edges {
+          node {
             name,
             lastName
           }
